@@ -1,0 +1,6 @@
+# Custom
+*.db
+*.db-journal
+*.0
+/.idea/
+__pycache__/
