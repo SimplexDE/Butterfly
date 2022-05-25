@@ -1,5 +1,7 @@
 import asyncio
 
+import discord
+import nextcord
 from nextcord.ext.commands import Bot as BotBase, CommandNotFound, Context
 from nextcord import Embed, Intents, Colour, __version__
 
@@ -29,7 +31,7 @@ class Ready(object):
 
     def ready_up(self, cog):
         setattr(self, cog, True)
-        log.success("Ready [{}]".format(cog).upper())
+        log.success("Ready [{}]".format(cog.upper()))
 
     def all_ready(self):
         return all([getattr(self, cog) for cog in COGS])
@@ -81,6 +83,10 @@ class Bot(BotBase):
                 await ctx.send("Currently starting up...")
 
     async def on_connect(self):
+        await bot.change_presence(status=nextcord.Status.do_not_disturb,
+                                  activity=nextcord.Activity(
+                                      type=nextcord.ActivityType.playing,
+                                      name="Startup Sequence..."))
         log.success("Connected.")
 
     async def on_disconnect(self):
@@ -134,6 +140,10 @@ class Bot(BotBase):
 
             log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
             self.ready = True
+            await bot.change_presence(status=nextcord.Status.online,
+                                      activity=nextcord.Activity(
+                                          type=nextcord.ActivityType.watching,
+                                          name="the sky | Version {}".format(self.VERSION)))
             await channel.send("Now online... :wave: || <@579111799794958377> ||", embed=embed)
 
         else:
