@@ -1,6 +1,6 @@
 import asyncio
 
-from nextcord.ext.commands import Bot as BotBase, CommandNotFound
+from nextcord.ext.commands import Bot as BotBase, CommandNotFound, Context
 from nextcord import Embed, Intents, Colour, __version__
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -33,6 +33,7 @@ class Ready(object):
 
     def all_ready(self):
         return all([getattr(self, cog) for cog in COGS])
+
 
 class Bot(BotBase):
 
@@ -68,6 +69,16 @@ class Bot(BotBase):
 
         log.info("Initializing.")
         super().run(self.TOKEN, reconnect=True)
+
+    async def process_commands(self, message):
+        ctx = await self.get_context(message, cls=Context)
+
+        if ctx.command is not None and ctx.guild is not None:
+            if self.ready:
+                await self.invoke(ctx)
+
+            else:
+                await ctx.send("Currently starting up...")
 
     async def on_connect(self):
         log.success("Connected.")
@@ -129,7 +140,8 @@ class Bot(BotBase):
             log.success("Reconnected.")
 
     async def on_message(self, message):
-        pass
+        if not message.author.bot:
+            await self.process_commands(message)
 
 
 bot = Bot()

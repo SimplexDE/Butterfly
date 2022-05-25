@@ -3,7 +3,7 @@ import logging
 from lib.bot import bot
 from loguru import logger as log
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 
 
 class InterceptHandler(logging.Handler):
@@ -15,7 +15,6 @@ class InterceptHandler(logging.Handler):
                 level = log.level("TRACE").name
         except ValueError:
             level = record.levelno
-
 
         # Find caller from where originated the logged message
         frame, depth = logging.currentframe(), 2
