@@ -1,9 +1,10 @@
-import nextcord.http
+import asyncio
+
 from nextcord.ext.commands import Bot as BotBase, CommandNotFound
 from nextcord import Embed, Intents, Colour, __version__
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+import os
 
 from loguru import logger as log
 
@@ -13,7 +14,25 @@ PREFIX = "+"
 OWNER_IDS = [
     579111799794958377,  # Simplex#7008
 ]
+COGS = []
+for file in os.listdir("./lib/cogs"):
+    if file.endswith(".py"):
+        if not file.startswith("-"):
+            COGS += [file[:-3]]
 
+
+class Ready(object):
+
+    def __init__(self):
+        for cog in COGS:
+            setattr(self, cog, False)
+
+    def ready_up(self, cog):
+        setattr(self, cog, True)
+        log.success("Ready [{}]".format(cog).upper())
+
+    def all_ready(self):
+        return all([getattr(self, cog) for cog in COGS])
 
 class Bot(BotBase):
 
@@ -22,6 +41,7 @@ class Bot(BotBase):
         self.VERSION = ""
         self.TOKEN = ""
         self.ready = False
+        self.cogs_ready = Ready()
         self.guild = None
         self.scheduler = AsyncIOScheduler()
 
@@ -30,8 +50,18 @@ class Bot(BotBase):
                          owner_ids=OWNER_IDS,
                          intents=Intents.all())
 
+    def setup(self):
+        for cog in COGS:
+            try:
+                self.load_extension("lib.cogs.{}".format(cog))
+            except Exception as e:
+                log.exception(e)
+
     def run(self, version):
         self.VERSION = version
+
+        log.info("Running setup...")
+        self.setup()
 
         with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
             self.TOKEN = tf.read()
@@ -63,7 +93,6 @@ class Bot(BotBase):
 
     async def on_ready(self):
         if not self.ready:
-            self.ready = True
             self.guild = self.get_guild(917094047494074398)
             self.scheduler.start()
 
@@ -89,7 +118,11 @@ class Bot(BotBase):
 
             embed.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
 
-            log.success("Ready [{}]".format(self.VERSION))
+            while not self.cogs_ready.all_ready():
+                await asyncio.sleep(0.5)
+
+            log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
+            self.ready = True
             await channel.send("Now online... :wave: || <@579111799794958377> ||", embed=embed)
 
         else:

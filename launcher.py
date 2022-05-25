@@ -3,13 +3,19 @@ import logging
 from lib.bot import bot
 from loguru import logger as log
 
+VERSION = "0.0.5"
+
+
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         # Get corresponding Loguru level if it exists
         try:
             level = log.level(record.levelname).name
+            if level == "DEBUG":
+                level = log.level("TRACE").name
         except ValueError:
             level = record.levelno
+
 
         # Find caller from where originated the logged message
         frame, depth = logging.currentframe(), 2
@@ -21,7 +27,5 @@ class InterceptHandler(logging.Handler):
 
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-
-VERSION = "0.0.3"
 
 bot.run(VERSION)
