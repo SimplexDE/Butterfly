@@ -2,8 +2,6 @@ import logging
 
 from lib.bot import bot
 from loguru import logger as log
-from sys import stderr
-
 
 class InterceptHandler(logging.Handler):
     def emit(self, record):

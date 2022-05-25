@@ -3,13 +3,16 @@ from nextcord.ext.commands import Bot as BotBase, CommandNotFound
 from nextcord import Embed, Intents, Colour, __version__
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from loguru import logger as log
 
+from ..db import db
+
 PREFIX = "+"
 OWNER_IDS = [
-    579111799794958377, # Simplex#7008
-    ]
+    579111799794958377,  # Simplex#7008
+]
 
 
 class Bot(BotBase):
@@ -22,6 +25,7 @@ class Bot(BotBase):
         self.guild = None
         self.scheduler = AsyncIOScheduler()
 
+        db.autosave(self.scheduler)
         super().__init__(command_prefix=PREFIX,
                          owner_ids=OWNER_IDS,
                          intents=Intents.all())
@@ -57,12 +61,11 @@ class Bot(BotBase):
         else:
             raise exc
 
-
     async def on_ready(self):
         if not self.ready:
             self.ready = True
             self.guild = self.get_guild(917094047494074398)
-            log.success("Ready [{}]".format(self.VERSION))
+            self.scheduler.start()
 
             channel = self.get_channel(978004248723873893)
             developer = ""
@@ -86,6 +89,7 @@ class Bot(BotBase):
 
             embed.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
 
+            log.success("Ready [{}]".format(self.VERSION))
             await channel.send("Now online... :wave: || <@579111799794958377> ||", embed=embed)
 
         else:
