@@ -1,5 +1,5 @@
 import nextcord.http
-from nextcord.ext.commands import Bot as BotBase
+from nextcord.ext.commands import Bot as BotBase, CommandNotFound
 from nextcord import Embed, Intents, Colour, __version__
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -40,6 +40,23 @@ class Bot(BotBase):
 
     async def on_disconnect(self):
         log.warning("Disconnected!")
+
+    async def on_error(self, err, *args, **kwargs):
+        if err == "on_command_error":
+            await args[0].send("Something went wrong.")
+
+        raise
+
+    async def on_command_error(self, ctx, exc):
+        if isinstance(exc, CommandNotFound):
+            await ctx.send("Wrong command")
+
+        elif hasattr(exc, "original"):
+            raise exc.original
+
+        else:
+            raise exc
+
 
     async def on_ready(self):
         if not self.ready:
