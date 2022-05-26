@@ -9,11 +9,19 @@ class Fun(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @command(name="ping", aliases=["p"])
+    @command(name="ping",
+             brief="Sends a \"Hi <user>\" message",
+             description="Sends a \"Hi <user>\" message",
+             aliases=['p'],
+             usage="ping",)
     async def ping(self, ctx):
-        await ctx.send("Hi")
+        await ctx.send("Hi {}".format(ctx.author.mention))
 
-    @command(name="joke", aliases=["j"])
+    @command(name="joke",
+             brief="Shows a joke",
+             description="Shows a random joke",
+             aliases=['j'],
+             usage="joke",)
     @cooldown(2, 15, BucketType.user)
     async def joke(self, ctx):
         URL = "https://some-random-api.ml/joke"
@@ -31,7 +39,11 @@ class Fun(Cog):
             else:
                 await ctx.send("API returned a {} status.".format(response.status))
 
-    @command(name="fact", aliases=["f"])
+    @command(name="fact",
+             brief="Shows animal facts",
+             description="Shows random facts for some animals",
+             aliases=['f'],
+             usage="facts <dog|cat|panda|fox|bird|koala>",)
     @cooldown(2, 15, BucketType.user)
     async def fact(self, ctx, animal: str):
         if animal.lower() in ("dog", "cat", "panda", "fox", "bird", "koala"):

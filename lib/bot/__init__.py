@@ -3,7 +3,7 @@ import asyncio
 import discord
 import nextcord
 from nextcord.ext.commands import Bot as BotBase, Context
-from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown
+from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown, DisabledCommand
 from nextcord.errors import HTTPException, Forbidden
 from nextcord import Embed, Intents, Colour, __version__
 
@@ -24,6 +24,7 @@ for file in os.listdir("./lib/cogs"):
         if not file.startswith("-"):
             COGS += [file[:-3]]
 IGNORE_EXCEPTIONS = (CommandNotFound, BadArgument)
+
 
 class Ready(object):
 
@@ -65,7 +66,6 @@ class Bot(BotBase):
     def run(self, version):
         self.VERSION = version
 
-        log.info("Running setup...")
         self.setup()
 
         with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
@@ -104,6 +104,9 @@ class Bot(BotBase):
         if any([isinstance(exc, error) for error in IGNORE_EXCEPTIONS]):
             pass
 
+        elif isinstance(exc, DisabledCommand):
+            await ctx.send("That command is disabled.")
+
         elif isinstance(exc, CommandOnCooldown):
             await ctx.send(f"That command is on {str(exc.type).split('.')[-1]} cooldown,"
                            f" try again in {exc.retry_after:,.2f} seconds.")
@@ -119,7 +122,6 @@ class Bot(BotBase):
 
         else:
             raise exc.original
-
 
     async def on_ready(self):
         if not self.ready:
