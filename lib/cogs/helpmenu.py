@@ -50,7 +50,7 @@ class Helpmenu(Cog):
 
                     if not hidden:
                         if enabled:
-                            HelpMessage.add_field(name="{}".format(brief.cap), value="```{}```".format(usage), inline=False)
+                            HelpMessage.add_field(name="{}".format(brief), value="```{}```".format(usage), inline=False)
                             cmds += 1
                         if not enabled:
                             if any([ctx.author.id in self.bot.owner_ids]):
@@ -107,7 +107,7 @@ class Helpmenu(Cog):
             HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=ctx.author.colour)
 
             HelpMessage.add_field(name=
-                                  "Basic Information about {}".format(name.capitalize()),
+                                  "Basic Information about {}".format(name).capitalize(),
                                   value=
                                   "> `{}`\n"
                                   "\n"
@@ -119,7 +119,7 @@ class Helpmenu(Cog):
 
             if any([ctx.author.id in self.bot.owner_ids]):
                 HelpMessage.add_field(name=
-                                      "Advanced Information about {}".format(name.capitalize()),
+                                      "Advanced Information about {}".format(name).capitalize(),
                                       value=
                                       "> Brief: `{}`\n"
                                       "> Hidden: `{}`\n"
