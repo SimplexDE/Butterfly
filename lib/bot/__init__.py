@@ -3,7 +3,7 @@ import asyncio
 import discord
 import nextcord
 from nextcord.ext.commands import Bot as BotBase, Context
-from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument
+from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown
 from nextcord.errors import HTTPException, Forbidden
 from nextcord import Embed, Intents, Colour, __version__
 
@@ -103,6 +103,10 @@ class Bot(BotBase):
     async def on_command_error(self, ctx, exc):
         if any([isinstance(exc, error) for error in IGNORE_EXCEPTIONS]):
             pass
+
+        elif isinstance(exc, CommandOnCooldown):
+            await ctx.send(f"That command is on {str(exc.type).split('.')[-1]} cooldown,"
+                           f" try again in {exc.retry_after:,.2f} seconds.")
 
         elif isinstance(exc, MissingRequiredArgument):
             await ctx.send("You're missing required arguments.")

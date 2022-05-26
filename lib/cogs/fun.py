@@ -1,5 +1,5 @@
 from aiohttp import request
-from nextcord.ext.commands import Cog, command
+from nextcord.ext.commands import Cog, command, cooldown, BucketType
 from nextcord import Embed
 from loguru import logger as log
 
@@ -14,6 +14,7 @@ class Fun(Cog):
         await ctx.send("Hi")
 
     @command(name="joke", aliases=["j"])
+    @cooldown(2, 15, BucketType.user)
     async def joke(self, ctx):
         URL = "https://some-random-api.ml/joke"
 
@@ -31,6 +32,7 @@ class Fun(Cog):
                 await ctx.send("API returned a {} status.".format(response.status))
 
     @command(name="fact", aliases=["f"])
+    @cooldown(2, 15, BucketType.user)
     async def fact(self, ctx, animal: str):
         if animal.lower() in ("dog", "cat", "panda", "fox", "bird", "koala"):
             URL = "https://some-random-api.ml/animal/{}".format(animal)
