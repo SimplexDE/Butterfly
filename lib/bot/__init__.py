@@ -2,7 +2,9 @@ import asyncio
 
 import discord
 import nextcord
-from nextcord.ext.commands import Bot as BotBase, CommandNotFound, Context
+from nextcord.ext.commands import Bot as BotBase, Context
+from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument
+from nextcord.errors import HTTPException, Forbidden
 from nextcord import Embed, Intents, Colour, __version__
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -21,7 +23,7 @@ for file in os.listdir("./lib/cogs"):
     if file.endswith(".py"):
         if not file.startswith("-"):
             COGS += [file[:-3]]
-
+IGNORE_EXCEPTIONS = (CommandNotFound, BadArgument)
 
 class Ready(object):
 
@@ -99,14 +101,21 @@ class Bot(BotBase):
         raise
 
     async def on_command_error(self, ctx, exc):
-        if isinstance(exc, CommandNotFound):
-            await ctx.send("Wrong command")
+        if any([isinstance(exc, error) for error in IGNORE_EXCEPTIONS]):
+            pass
 
-        elif hasattr(exc, "original"):
-            raise exc.original
+        elif isinstance(exc, MissingRequiredArgument):
+            await ctx.send("You're missing required arguments.")
+
+        elif isinstance(exc.original, HTTPException):
+            await ctx.send("Unable to send message.")
+
+        elif isinstance(exc.original, Forbidden):
+            await ctx.send("I do not have the required permission for that.")
 
         else:
-            raise exc
+            raise exc.original
+
 
     async def on_ready(self):
         if not self.ready:

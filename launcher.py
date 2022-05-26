@@ -3,7 +3,7 @@ import logging
 from lib.bot import bot
 from loguru import logger as log
 
-VERSION = "0.0.7"
+VERSION = "0.0.8"
 
 
 class InterceptHandler(logging.Handler):
