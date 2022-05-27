@@ -31,9 +31,11 @@ class Ready(object):
     def __init__(self):
         for cog in COGS:
             setattr(self, cog, False)
+            log.info("{} changed READY Status to: {}".format(cog.capitalize(), False))
 
     def ready_up(self, cog):
         setattr(self, cog, True)
+        log.info("{} changed READY Status to: {}".format(cog.capitalize(), True))
         log.success("Ready [{}]".format(cog.upper()))
 
     def all_ready(self):
@@ -59,13 +61,16 @@ class Bot(BotBase):
     def setup(self):
         for cog in COGS:
             try:
+                log.info("Loading {}".format(cog))
                 self.load_extension("lib.cogs.{}".format(cog))
             except Exception as e:
+                log.info("Error occoured during loading of {}".format(cog))
                 log.exception(e)
 
     def run(self, version):
         self.VERSION = version
 
+        log.info("Starting setup...")
         self.setup()
 
         with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
@@ -88,7 +93,7 @@ class Bot(BotBase):
         await bot.change_presence(status=nextcord.Status.do_not_disturb,
                                   activity=nextcord.Activity(
                                       type=nextcord.ActivityType.playing,
-                                      name="Startup Sequence..."))
+                                      name="Booting up..."))
         log.success("Connected.")
 
     async def on_disconnect(self):
@@ -96,7 +101,7 @@ class Bot(BotBase):
 
     async def on_error(self, err, *args, **kwargs):
         if err == "on_command_error":
-            await args[0].send("Something went wrong.")
+            await args[0].send("Something went wrong. Please contact the Developer or check the console.")
 
         raise
 
@@ -128,7 +133,6 @@ class Bot(BotBase):
             self.guild = self.get_guild(917094047494074398)
             self.scheduler.start()
 
-            channel = self.get_channel(978004248723873893)
             developer = ""
             for owner_id in OWNER_IDS:
                 owner = self.get_user(owner_id)
@@ -136,30 +140,52 @@ class Bot(BotBase):
                 developer += owner.discriminator + ", "
             developer = developer[:-2]
 
-            embed = Embed(title="Startup complete",
-                          description="{} is now Online.".format(bot.user.name),
-                          colour=Colour.brand_green())
+            embed_done = Embed(title="Ready!",
+                               description="{} is ready.".format(bot.user.name),
+                               colour=Colour.brand_green())
 
-            fields = [("Name", bot.user.name, True),
-                      ("Developer", developer, True),
-                      ("Version", "`" + self.VERSION + "`", True),
-                      ("Nextcord", "`" + __version__ + "`", True)]
+            fields = [("Developer", developer, True),
+                      ("Version", "`" + self.VERSION + "`", True)]
 
             for name, value, inline in fields:
-                embed.add_field(name=name, value=value, inline=inline)
+                embed_done.add_field(name=name, value=value, inline=inline)
 
-            embed.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
+            embed_done.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
+
+            counter = 15
+            halfcounter = counter / 2
+
+            errorsduringload = False
 
             while not self.cogs_ready.all_ready():
                 await asyncio.sleep(0.5)
+                counter -= 1
+                if counter == halfcounter:
+                    log.warning("It already took {} seconds to load.".format(halfcounter))
+                if counter <= -1:
+                    log.error("Errors encountered during startup, not all cogs are available.")
+                    errorsduringload = True
+                    break
+
+            if errorsduringload:
+                embed_done.add_field(name=":warning: Completed with errors",
+                                     value="The bot started with errors,"
+                                           " check console for more information",
+                                     inline=False)
+            else:
+                embed_done.add_field(name=":white_check_mark: Completed without errors.",
+                                     value="No errors during loading detected.",
+                                     inline=False)
 
             log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
             self.ready = True
             await bot.change_presence(status=nextcord.Status.online,
                                       activity=nextcord.Activity(
                                           type=nextcord.ActivityType.watching,
-                                          name="the sky | Version {}".format(self.VERSION)))
-            await channel.send("Now online... :wave: || <@579111799794958377> ||", embed=embed)
+                                          name="the flowers | Version {}".format(self.VERSION)))
+
+            channel = self.get_channel(979549812695392336)
+            await channel.send(embed=embed_done)
 
         else:
             log.success("Reconnected.")

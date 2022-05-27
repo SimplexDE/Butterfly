@@ -1,5 +1,6 @@
 from typing import Optional
 
+import nextcord
 from loguru import logger
 from nextcord import Embed
 from nextcord.ext.commands import Cog, Bot, command
@@ -18,7 +19,7 @@ class Helpmenu(Cog):
              usage="help [<Command>]")
     async def help(self, ctx, cmd: Optional[str]):
         if not cmd:
-            HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=ctx.author.colour)
+            HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=nextcord.Colour.dark_purple())
 
             cmds = 0
             last_cmd = ""
@@ -73,7 +74,7 @@ class Helpmenu(Cog):
                                                       inline=False)
 
             HelpMessage.set_footer(
-                text="GR00MI {} | <> Required field, [<>] Optional field".format(self.bot.VERSION),
+                text="{} {} | <> Required field, [<>] Optional field".format(self.bot.user.name, self.bot.VERSION),
                 icon_url=ctx.author.avatar)
 
             HelpMessage.set_thumbnail(url=self.bot.user.avatar)
@@ -104,7 +105,7 @@ class Helpmenu(Cog):
             if desc is None:
                 desc = "No description"
 
-            HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=ctx.author.colour)
+            HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=nextcord.Colour.dark_purple())
 
             HelpMessage.add_field(name=
                                   "Basic Information about {}".format(name).capitalize(),
@@ -150,7 +151,7 @@ class Helpmenu(Cog):
             #     text = text[:length]
             #     HelpMessage.add_field(name="Aliases", value='{}'.format(text), inline=False)
 
-            HelpMessage.set_footer(text="GR00MI {} | <> Required field, [<>] Optional field".format(self.bot.VERSION),
+            HelpMessage.set_footer(text="{} {} | <> Required field, [<>] Optional field".format(self.bot.user.name, self.bot.VERSION),
                                    icon_url=ctx.author.avatar)
 
             HelpMessage.set_thumbnail(url=self.bot.user.avatar)
