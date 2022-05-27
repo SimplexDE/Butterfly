@@ -1,10 +1,6 @@
-import logging
-
 from lib.bot import bot
-from loguru import logger as log
 
-VERSION = "0.0.12-2"
-
+VERSION = "0.0.12-3"
 
 # class InterceptHandler(logging.Handler):
 #     def emit(self, record):

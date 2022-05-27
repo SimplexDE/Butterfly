@@ -1,9 +1,26 @@
 from typing import Optional
 
 import nextcord
-from loguru import logger
 from nextcord import Embed
-from nextcord.ext.commands import Cog, Bot, command
+from nextcord.ext import menus
+from nextcord.ext.commands import Cog, command
+
+
+class buildHelpmenu(menus.ListPageSource):
+    def __init__(self, data, thumbnail, botname):
+        super().__init__(data, per_page=5)
+        self.thumbnail = thumbnail
+        self.botname = botname
+
+    async def format_page(self, menu, entries):
+        embed = Embed(title="{} Help".format(self.botname), colour=nextcord.Colour.dark_purple())
+        for _item in entries:
+            embed.add_field(name=_item[0], value="```{}```".format(_item[1]), inline=False)
+        embed.set_footer(
+            text=f'Page {menu.current_page + 1}/{self.get_max_pages()} | <> Required field, [<>] Optional field')
+        embed.set_thumbnail(
+            url=self.thumbnail)
+        return embed
 
 
 class Helpmenu(Cog):
@@ -12,6 +29,52 @@ class Helpmenu(Cog):
         self.bot = bot
         self.bot.remove_command("help")
 
+    @command(brief="Test baum", usage="TEst", hidden=True, enabled=False)
+    async def button_embed_field(self, ctx):
+        fields = []
+        last_cmd = ""
+        for _item in self.bot.all_commands.keys():
+            _item_cmd = self.bot.get_command(_item)
+            name = _item_cmd.name
+            usage = _item_cmd.usage
+            brief = _item_cmd.brief
+
+            enabled = _item_cmd.enabled
+            hidden = _item_cmd.hidden
+
+            if _item_cmd == last_cmd:
+                pass
+
+            else:
+                last_cmd = _item_cmd
+
+                if brief is None:
+                    brief = "No description"
+
+                if usage is None:
+                    usage = name
+
+                elif not enabled:
+                    if any([ctx.author.id in self.bot.owner_ids]):
+                        usage = "Disabled..."
+                        fields += [(brief, usage)]
+                    pass
+
+                elif hidden:
+                    if any([ctx.author.id in self.bot.owner_ids]):
+                        usage = "Hidden..."
+                        fields += [(brief, usage)]
+                    pass
+
+                else:
+                    fields += [(brief, usage)]
+
+        pages = menus.ButtonMenuPages(
+            source=self.MyEmbedFieldPageSource(fields),
+            clear_buttons_after=True,
+        )
+        await pages.start(ctx)
+
     @command(name="help",
              brief="Shows help menu",
              description="Shows help for commands",
@@ -19,18 +82,16 @@ class Helpmenu(Cog):
              usage="help [<Command>]")
     async def help(self, ctx, cmd: Optional[str]):
         if not cmd:
-            HelpMessage = Embed(title="{} Help".format(self.bot.user.name), colour=nextcord.Colour.dark_purple())
-
-            cmds = 0
+            fields = []
             last_cmd = ""
-
             for _item in self.bot.all_commands.keys():
                 _item_cmd = self.bot.get_command(_item)
                 name = _item_cmd.name
                 usage = _item_cmd.usage
                 brief = _item_cmd.brief
-                hidden = _item_cmd.hidden
+
                 enabled = _item_cmd.enabled
+                hidden = _item_cmd.hidden
 
                 if _item_cmd == last_cmd:
                     pass
@@ -39,47 +100,31 @@ class Helpmenu(Cog):
                     last_cmd = _item_cmd
 
                     if brief is None:
-                        brief = "No Data"
+                        brief = "No description"
 
                     if usage is None:
                         usage = name
 
-                    # length = len(brief)
-                    # if length >= 22:
-                    #     brief = brief[:22]
-                    #     brief += "..."
-
-                    if not hidden:
-                        if enabled:
-                            HelpMessage.add_field(name="{}".format(brief), value="```{}```".format(usage), inline=False)
-                            cmds += 1
-                        if not enabled:
-                            if any([ctx.author.id in self.bot.owner_ids]):
-                                cmds += 1
-                                HelpMessage.add_field(name="{}".format(brief),
-                                                      value="```Disabled...```".format(usage),
-                                                      inline=False)
-                    if hidden:
+                    elif not enabled:
                         if any([ctx.author.id in self.bot.owner_ids]):
-                            if enabled:
-                                cmds += 1
-                                HelpMessage.add_field(name="{}".format(brief),
-                                                      value="```Hidden...```".format(usage),
-                                                      inline=False)
+                            usage = "Disabled..."
+                            fields += [(brief, usage)]
+                        pass
 
-                            if not enabled:
-                                cmds += 1
-                                HelpMessage.add_field(name="{}".format(brief),
-                                                      value="```Hidden & Disabled...```".format(usage),
-                                                      inline=False)
+                    elif hidden:
+                        if any([ctx.author.id in self.bot.owner_ids]):
+                            usage = "Hidden..."
+                            fields += [(brief, usage)]
+                        pass
 
-            HelpMessage.set_footer(
-                text="{} {} | <> Required field, [<>] Optional field".format(self.bot.user.name, self.bot.VERSION),
-                icon_url=ctx.author.avatar)
+                    else:
+                        fields += [(brief, usage)]
 
-            HelpMessage.set_thumbnail(url=self.bot.user.avatar)
-
-            await ctx.send(embed=HelpMessage)
+            pages = menus.ButtonMenuPages(
+                source=buildHelpmenu(fields, self.bot.user.avatar, self.bot.user.name),
+                clear_buttons_after=True,
+            )
+            await pages.start(ctx)
 
         if cmd:
             try:
@@ -129,7 +174,6 @@ class Helpmenu(Cog):
                                       "".format(brief, hidden, cog_name, enabled),
                                       inline=False)
 
-
             #
             # if usage is not None:
             #     HelpMessage.add_field(name="Usage", value="`{}`".format(usage), inline=False)
@@ -151,8 +195,9 @@ class Helpmenu(Cog):
             #     text = text[:length]
             #     HelpMessage.add_field(name="Aliases", value='{}'.format(text), inline=False)
 
-            HelpMessage.set_footer(text="{} {} | <> Required field, [<>] Optional field".format(self.bot.user.name, self.bot.VERSION),
-                                   icon_url=ctx.author.avatar)
+            HelpMessage.set_footer(
+                text="{} {} | <> Required field, [<>] Optional field".format(self.bot.user.name, self.bot.VERSION),
+                icon_url=ctx.author.avatar)
 
             HelpMessage.set_thumbnail(url=self.bot.user.avatar)
 
