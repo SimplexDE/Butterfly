@@ -1,11 +1,10 @@
 import asyncio
 
-import discord
 import nextcord
 from nextcord.ext.commands import Bot as BotBase, Context
 from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown, DisabledCommand
 from nextcord.errors import HTTPException, Forbidden
-from nextcord import Embed, Intents, Colour, __version__
+from nextcord import Embed, Intents, Colour
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import os
@@ -130,7 +129,7 @@ class Bot(BotBase):
 
     async def on_ready(self):
         if not self.ready:
-            self.guild = self.get_guild(917094047494074398)
+            self.guild = self.get_guild(876844147812728892)
             self.scheduler.start()
 
             developer = ""
@@ -184,7 +183,7 @@ class Bot(BotBase):
                                           type=nextcord.ActivityType.watching,
                                           name="the flowers | Version {}".format(self.VERSION)))
 
-            channel = self.get_channel(979549812695392336)
+            channel = self.get_channel(979750917249310720)
             await channel.send(embed=embed_done)
 
         else:
