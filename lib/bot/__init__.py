@@ -153,7 +153,7 @@ class Bot(BotBase):
             embed_done.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
 
             counter = 15
-            halfcounter = counter / 2
+            halfcounter = round(counter / 2)
 
             errorsduringload = False
 
