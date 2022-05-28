@@ -78,8 +78,9 @@ class Bot(BotBase):
         log.info("Starting setup...")
         self.setup()
 
-        with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
-            self.TOKEN = tf.read()
+        # For local token, create "token.0" in "lib/bot/" and add you're token into that file.
+        # with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
+        #    self.TOKEN = tf.read()
 
         log.info("Initializing.")
         super().run(self.TOKEN, reconnect=True)
