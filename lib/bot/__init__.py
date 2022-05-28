@@ -42,7 +42,8 @@ class Ready(object):
         return all([getattr(self, cog) for cog in COGS])
 
 
-s3 = S3Connection(os.environ['TOKEN'])
+s3 = S3Connection(os.environ['S3_KEY'], os.environ['S3_ACCESS'])
+token = os.environ['TOKEN']
 
 
 class Bot(BotBase):
@@ -50,7 +51,7 @@ class Bot(BotBase):
     def __init__(self):
         self.PREFIX = PREFIX
         self.VERSION = ""
-        self.TOKEN = s3
+        self.TOKEN = token
         self.ready = False
         self.cogs_ready = Ready()
         self.guild = None
