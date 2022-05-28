@@ -13,7 +13,6 @@ from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredA
 
 from ..db import db
 
-PREFIX = "-"
 OWNER_IDS = [
     579111799794958377,  # Simplex#7008
 ]
@@ -44,12 +43,13 @@ class Ready(object):
 
 s3 = S3Connection(os.environ['S3_KEY'], os.environ['S3_ACCESS'])
 token = os.environ['TOKEN']
+prefix = os.environ['PREFIX']
 
 
 class Bot(BotBase):
 
     def __init__(self):
-        self.PREFIX = PREFIX
+        self.PREFIX = prefix
         self.VERSION = ""
         self.TOKEN = token
         self.ready = False
@@ -59,7 +59,7 @@ class Bot(BotBase):
         self.blocked = []
 
         db.autosave(self.scheduler)
-        super().__init__(command_prefix=PREFIX,
+        super().__init__(command_prefix=prefix,
                          owner_ids=OWNER_IDS,
                          intents=Intents.all())
 
