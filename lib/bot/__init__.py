@@ -176,12 +176,11 @@ class Bot(BotBase):
                 developer += owner.discriminator + ", "
             developer = developer[:-2]
 
-            if contributorList:
-                for contributor_id in CONTRIBUTOR_IDS:
-                    contributor = self.get_user(contributor_id)
-                    contributorList += contributor.name + "#"
-                    contributorList += contributor.discriminator + ", "
-                contributorList = contributorList[:-2]
+            for contributor_id in CONTRIBUTOR_IDS:
+                contributor = self.get_user(contributor_id)
+                contributorList += contributor.name + "#"
+                contributorList += contributor.discriminator + ", "
+            contributorList = contributorList[:-2]
 
             embed_done = Embed(title="Ready!",
                                description="{} is ready.".format(bot.user.name),
