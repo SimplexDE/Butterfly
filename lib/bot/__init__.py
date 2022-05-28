@@ -1,23 +1,24 @@
 import asyncio
-
-import nextcord
-from nextcord.ext.commands import Bot as BotBase, Context
-from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown, DisabledCommand
-from nextcord.errors import HTTPException, Forbidden
-from nextcord import Embed, Intents, Colour
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import os
 
+import nextcord
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from boto.s3.connection import S3Connection
 from loguru import logger as log
+from nextcord import Embed, Intents, Colour
+from nextcord.errors import HTTPException, Forbidden
+from nextcord.ext.commands import Bot as BotBase, Context
+from nextcord.ext.commands import CommandNotFound, BadArgument, MissingRequiredArgument, CommandOnCooldown, \
+    DisabledCommand
 
 from ..db import db
 
-PREFIX = "+"
+PREFIX = "-"
 OWNER_IDS = [
     579111799794958377,  # Simplex#7008
 ]
 COGS = []
+
 for file in os.listdir("./lib/cogs"):
     if file.endswith(".py"):
         if not file.startswith("-"):
@@ -41,16 +42,21 @@ class Ready(object):
         return all([getattr(self, cog) for cog in COGS])
 
 
+s3 = S3Connection(os.environ['S3_KEY'], os.environ['S3_ACCESS'])
+token = os.environ['TOKEN']
+
+
 class Bot(BotBase):
 
     def __init__(self):
         self.PREFIX = PREFIX
         self.VERSION = ""
-        self.TOKEN = ""
+        self.TOKEN = token
         self.ready = False
         self.cogs_ready = Ready()
         self.guild = None
         self.scheduler = AsyncIOScheduler()
+        self.blocked = []
 
         db.autosave(self.scheduler)
         super().__init__(command_prefix=PREFIX,
@@ -72,8 +78,9 @@ class Bot(BotBase):
         log.info("Starting setup...")
         self.setup()
 
-        with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
-            self.TOKEN = tf.read()
+        # For local token, create "token.0" in "lib/bot/" and add you're token into that file.
+        # with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
+        #    self.TOKEN = tf.read()
 
         log.info("Initializing.")
         super().run(self.TOKEN, reconnect=True)
@@ -109,20 +116,34 @@ class Bot(BotBase):
             pass
 
         elif isinstance(exc, DisabledCommand):
-            await ctx.send("That command is disabled.")
+            await ctx.send("> <:highpriority:979853981222309928> | That command is disabled.")
 
         elif isinstance(exc, CommandOnCooldown):
-            await ctx.send(f"That command is on {str(exc.type).split('.')[-1]} cooldown,"
-                           f" try again in {exc.retry_after:,.2f} seconds.")
+            user_id = str(ctx.message.author.id)
+
+            if not self.blocked.get(user_id):
+                self.blocked[user_id] = []
+
+            if ctx.command.name in self.blocked[user_id]:
+                return
+
+            await ctx.send(
+                f"> <:mediumpriority:979853981281042483> | That command is on {str(exc.type).split('.')[-1]} cooldown.\n"
+                f"> <:info:979853981545299968> | You can execute it again in {exc.retry_after:,.2f} seconds.")
+
+            self.blocked[user_id].append(ctx.command.name)
+            await asyncio.sleep(2)  # 2 Sekunden blocken
+            self.blocked[user_id].remove(ctx.command.name)
 
         elif isinstance(exc, MissingRequiredArgument):
-            await ctx.send("You're missing required arguments.")
+            await ctx.send("> <:mediumpriority:979853981281042483> | You're missing required arguments.")
 
         elif isinstance(exc.original, HTTPException):
-            await ctx.send("Unable to send message.")
+            await ctx.send("> <:highpriority:979853981222309928> | Unable to send message.")
 
         elif isinstance(exc.original, Forbidden):
-            await ctx.send("I do not have the required permission for that.")
+            await ctx.send(
+                "> <:restrictionshield:979853982296055848> | I do not have the required permission for that.")
 
         else:
             raise exc.original
