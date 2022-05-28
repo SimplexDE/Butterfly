@@ -1,6 +1,6 @@
 from lib.bot import bot
 
-VERSION = "0.0.13-alpha.1"
+VERSION = "0.0.13-alpha.2"
 
 # class InterceptHandler(logging.Handler):
 #     def emit(self, record):

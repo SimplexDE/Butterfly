@@ -7,7 +7,7 @@ from nextcord.ext.commands import Cog
 # IMPORTANT NOTICE:
 #
 # This is not done.
-# More functions are planned, because of that it is in its own branch atm.
+# More functions are planned.
 # ~ Simplex
 #
 
