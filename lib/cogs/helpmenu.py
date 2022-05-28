@@ -29,52 +29,6 @@ class Helpmenu(Cog):
         self.bot = bot
         self.bot.remove_command("help")
 
-    @command(brief="Test baum", usage="TEst", hidden=True, enabled=False)
-    async def button_embed_field(self, ctx):
-        fields = []
-        last_cmd = ""
-        for _item in self.bot.all_commands.keys():
-            _item_cmd = self.bot.get_command(_item)
-            name = _item_cmd.name
-            usage = _item_cmd.usage
-            brief = _item_cmd.brief
-
-            enabled = _item_cmd.enabled
-            hidden = _item_cmd.hidden
-
-            if _item_cmd == last_cmd:
-                pass
-
-            else:
-                last_cmd = _item_cmd
-
-                if brief is None:
-                    brief = "No description"
-
-                if usage is None:
-                    usage = name
-
-                elif not enabled:
-                    if any([ctx.author.id in self.bot.owner_ids]):
-                        usage = "Disabled..."
-                        fields += [(brief, usage)]
-                    pass
-
-                elif hidden:
-                    if any([ctx.author.id in self.bot.owner_ids]):
-                        usage = "Hidden..."
-                        fields += [(brief, usage)]
-                    pass
-
-                else:
-                    fields += [(brief, usage)]
-
-        pages = menus.ButtonMenuPages(
-            source=self.MyEmbedFieldPageSource(fields),
-            clear_buttons_after=True,
-        )
-        await pages.start(ctx)
-
     @command(name="help",
              brief="Shows help menu",
              description="Shows help for commands",

@@ -1,8 +1,10 @@
 import asyncio
 import os
+from random import choice
 
 import nextcord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from boto.s3.connection import S3Connection
 from loguru import logger as log
 from nextcord import Embed, Intents, Colour
@@ -15,6 +17,9 @@ from ..db import db
 
 OWNER_IDS = [
     579111799794958377,  # Simplex#7008
+]
+CONTRIBUTOR_IDS = [
+    507517299746537472,
 ]
 COGS = []
 
@@ -56,7 +61,7 @@ class Bot(BotBase):
         self.cogs_ready = Ready()
         self.guild = None
         self.scheduler = AsyncIOScheduler()
-        self.blocked = []
+        self.blocked = {}
 
         db.autosave(self.scheduler)
         super().__init__(command_prefix=prefix,
@@ -85,6 +90,16 @@ class Bot(BotBase):
         log.info("Initializing.")
         super().run(self.TOKEN, reconnect=True)
 
+    async def presence_change(self):
+
+        choices = ["the flowers", "the sky", "you...", "Simplex", "Butterfly GitHub", "Butterfly Review",
+                   "Butterfly Staging", "Butterfly Development", "Juox", "behind you!"]
+
+        await bot.change_presence(status=nextcord.Status.online,
+                                  activity=nextcord.Activity(
+                                      type=nextcord.ActivityType.watching,
+                                      name="Version {}".format(self.VERSION, choice(choices))))
+
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
 
@@ -93,7 +108,7 @@ class Bot(BotBase):
                 await self.invoke(ctx)
 
             else:
-                await ctx.send("Currently starting up...")
+                await ctx.send("Currently starting up...", delete_after=3)
 
     async def on_connect(self):
         await bot.change_presence(status=nextcord.Status.do_not_disturb,
@@ -154,17 +169,26 @@ class Bot(BotBase):
             self.scheduler.start()
 
             developer = ""
+            contributorList = ""
             for owner_id in OWNER_IDS:
                 owner = self.get_user(owner_id)
                 developer += owner.name + "#"
                 developer += owner.discriminator + ", "
             developer = developer[:-2]
 
+            if contributorList:
+                for contributor_id in CONTRIBUTOR_IDS:
+                    contributor = self.get_user(contributor_id)
+                    contributorList += contributor.name + "#"
+                    contributorList += contributor.discriminator + ", "
+                contributorList = contributorList[:-2]
+
             embed_done = Embed(title="Ready!",
                                description="{} is ready.".format(bot.user.name),
                                colour=Colour.brand_green())
 
             fields = [("Developer", developer, True),
+                      ("Contributor", contributorList, True),
                       ("Version", "`" + self.VERSION + "`", True)]
 
             for name, value, inline in fields:
@@ -197,12 +221,15 @@ class Bot(BotBase):
                                      value="No errors during loading detected.",
                                      inline=False)
 
-            log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
-            self.ready = True
+            self.scheduler.add_job(self.presence_change, CronTrigger(hour='*', jitter=220))
+
             await bot.change_presence(status=nextcord.Status.online,
                                       activity=nextcord.Activity(
                                           type=nextcord.ActivityType.watching,
-                                          name="the flowers | Version {}".format(self.VERSION)))
+                                          name="Version {}".format(self.VERSION)))
+
+            log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
+            self.ready = True
 
             channel = self.get_channel(979750917249310720)
             await channel.send(embed=embed_done)
@@ -213,6 +240,7 @@ class Bot(BotBase):
     async def on_message(self, message):
         if not message.author.bot:
             await self.process_commands(message)
+            await message.delete()
 
 
 bot = Bot()
