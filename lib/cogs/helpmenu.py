@@ -3,7 +3,7 @@ from typing import Optional
 import nextcord
 from nextcord import Embed
 from nextcord.ext import menus
-from nextcord.ext.commands import Cog, command
+from nextcord.ext.commands import Cog, command, cooldown, BucketType
 
 
 class buildHelpmenu(menus.ListPageSource):
@@ -34,6 +34,7 @@ class Helpmenu(Cog):
              description="Shows help for commands",
              aliases=['h'],
              usage="help [<Command>]")
+    @cooldown(1, 30, BucketType.user)
     async def help(self, ctx, cmd: Optional[str]):
         if not cmd:
             fields = []

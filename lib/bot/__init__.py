@@ -83,22 +83,24 @@ class Bot(BotBase):
         log.info("Starting setup...")
         self.setup()
 
-        # For local token, create "token.0" in "lib/bot/" and add you're token into that file.
-        # with open("./lib/bot/token.0", "r", encoding="utf-8") as tf:
-        #    self.TOKEN = tf.read()
-
         log.info("Initializing.")
         super().run(self.TOKEN, reconnect=True)
 
     async def presence_change(self):
 
-        choices = ["the flowers", "the sky", "you...", "Simplex", "Butterfly GitHub", "Butterfly Review",
-                   "Butterfly Staging", "Butterfly Development", "Juox", "behind you!"]
+        choices = [("the flowers", nextcord.ActivityType.watching),
+                   ("the sky", nextcord.ActivityType.watching),
+                   ("you...", nextcord.ActivityType.watching),
+                   ("Simplex", nextcord.ActivityType.listening),
+                   ("to my code", nextcord.ActivityType.listening),
+                   ("Juox", nextcord.ActivityType.listening)]
+
+        sel = choice(choices)
 
         await bot.change_presence(status=nextcord.Status.online,
                                   activity=nextcord.Activity(
-                                      type=nextcord.ActivityType.watching,
-                                      name="Version {}".format(self.VERSION, choice(choices))))
+                                      type=sel[1],
+                                      name="{} | {}".format(sel[0], self.VERSION)))
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
@@ -220,12 +222,8 @@ class Bot(BotBase):
                                      value="No errors during loading detected.",
                                      inline=False)
 
-            self.scheduler.add_job(self.presence_change, CronTrigger(hour='*', jitter=220))
-
-            await bot.change_presence(status=nextcord.Status.online,
-                                      activity=nextcord.Activity(
-                                          type=nextcord.ActivityType.watching,
-                                          name="Version {}".format(self.VERSION)))
+            self.scheduler.add_job(self.presence_change, CronTrigger(hour='*', jitter=269))
+            await self.presence_change()
 
             log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
             self.ready = True
