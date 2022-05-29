@@ -17,7 +17,10 @@ class Misc(Cog):
     async def echo_cmd(self, ctx, *, text):
         await ctx.message.delete()
         await ctx.trigger_typing()
-        await ctx.send(text, allowed_mentions=nextcord.AllowedMentions(everyone=False, users=False, roles=False))
+        await ctx.send(text,
+                       allowed_mentions=nextcord.AllowedMentions(everyone=False,
+                                                                 users=False,
+                                                                 roles=False))
 
     @Cog.listener()
     async def on_ready(self):

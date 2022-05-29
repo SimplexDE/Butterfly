@@ -193,7 +193,9 @@ class Bot(BotBase):
                       ("Version", "`" + self.VERSION + "`", True)]
 
             for name, value, inline in fields:
-                embed_done.add_field(name=name, value=value, inline=inline)
+                embed_done.add_field(name=name,
+                                     value=value,
+                                     inline=inline)
 
             embed_done.set_footer(text="{} | {}".format(bot.user.name, self.VERSION), icon_url=bot.user.avatar)
 
@@ -222,7 +224,8 @@ class Bot(BotBase):
                                      value="No errors during loading detected.",
                                      inline=False)
 
-            self.scheduler.add_job(self.presence_change, CronTrigger(hour='*', jitter=269))
+            self.scheduler.add_job(self.presence_change, CronTrigger(hour='*',
+                                                                     jitter=269))
             await self.presence_change()
 
             log.success("Ready [{}@{}]".format(bot.user.name, self.VERSION))
