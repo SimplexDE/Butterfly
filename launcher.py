@@ -9,6 +9,6 @@ for ease of use, here you can set the Bot Version.
 """
 
 
-VERSION = "0.1.0-indev"
+VERSION = "0.0.1"
 
 bot.run(VERSION)

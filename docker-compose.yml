@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  silver:
+    image: butterfly-silver:latest
+    working_dir: /user/src/Butterfly
+
+    restart: unless-stopped
+
+    deploy:
+      restart_policy:
+        delay: 5s
+        window: 3s
+        max_attempts: 10
+        condition: on-failure
+
+    build:
+      dockerfile: .\Dockerfile
+
+    volumes:
+      - "./:/user/src/Butterfly"
+
+    network_mode: host
+
+  gold:
+    image: butterfly-gold:latest
+    working_dir: /user/src/ButterflyGold
+
+    restart: unless-stopped
+
+    deploy:
+      restart_policy:
+        delay: 5s
+        window: 3s
+        max_attempts: 10
+        condition: on-failure
+
+    build:
+      dockerfile: ../Butterfly Gold/Dockerfile
+
+    volumes:
+      - "../Butterfly Gold/:/user/src/ButterflyGold"
+
+    network_mode: host
