@@ -11,3 +11,4 @@ venv/
 __pycache__/
 lib/cogs/indev/*
 !/docker-compose.yml
+/.run/*
